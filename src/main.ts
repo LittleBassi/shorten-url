@@ -1,6 +1,4 @@
 import "dotenv/config";
-// import helmet from 'helmet';
-// import session from 'express-session';
 import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
@@ -16,9 +14,6 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors();
-  // app.use(helmet({ crossOriginResourcePolicy: false }));
-  // app.use(session({ secret: configService.getOrThrow('JWT_TOKEN'), resave: false, saveUninitialized: false }));
-
   const config = new DocumentBuilder()
     .setTitle("URL Shortener")
     .setDescription("API para encurtar URLs")
@@ -31,7 +26,7 @@ async function bootstrap() {
         bearerFormat: "JWT",
         in: "header",
       },
-      "jwt", // <<==== nome da security key
+      "jwt",
     )
     .build();
 
