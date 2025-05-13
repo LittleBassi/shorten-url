@@ -4,6 +4,7 @@ import { CreateShortenUrlDto } from "./dto/create-shorten-url.dto";
 import { generateCode } from "../../helpers/nanoid.helper";
 import { UsersService } from "../users/users.service";
 import { UpdateShortenUrlDto } from "./dto/update-shorten-url.dto";
+import { ShortenedUrl } from "./entities/shortened-url.entity";
 
 @Injectable()
 export class ShortenUrlService {
@@ -18,6 +19,7 @@ export class ShortenUrlService {
     if (!shortenedUrl) {
       shortenedUrl = this.shortenedUrlRepository.create(dto);
       shortenedUrl.shortenedCode = await generateCode();
+      shortenedUrl.redirectUrl = `${this.apiRoute}/${shortenedUrl.shortenedCode}`
       if (userId) {
         const user = await this.usersService.findOne(userId);
         if (!user) {
@@ -27,7 +29,7 @@ export class ShortenUrlService {
       }
       await this.shortenedUrlRepository.update(shortenedUrl);
     }
-    return `${this.apiRoute}/${shortenedUrl.shortenedCode}`;
+    return shortenedUrl.redirectUrl;
   }
 
   async update(id: number, dto: UpdateShortenUrlDto, userId: number | null) {
@@ -58,12 +60,17 @@ export class ShortenUrlService {
     return await this.shortenedUrlRepository.delete(shortenedUrl);
   }
 
+  async updateViewCount(shortenedUrl: ShortenedUrl) {
+    shortenedUrl.viewCount = (shortenedUrl.viewCount || 0) + 1;
+    await this.shortenedUrlRepository.update(shortenedUrl);
+  }
 
   async findByCode(code: string) {
     const shortenedUrl = await this.shortenedUrlRepository.findByCode(code);
     if (!shortenedUrl) {
       throw new NotFoundException("URL not found");
     }
+    await this.updateViewCount(shortenedUrl);
     return shortenedUrl;
   }
 

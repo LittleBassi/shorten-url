@@ -25,6 +25,12 @@ export class ShortenedUrl extends BaseEntity {
   @Column({ name: "shortened_code", length: 255 })
   shortenedCode: string;
 
+  @Column({ name: "redirect_url", length: 255 })
+  redirectUrl: string;
+
+  @Column({ name: "view_count", default: 0 })
+  viewCount: number;
+
   @ManyToOne(() => User, {
     nullable: true,
     onUpdate: "CASCADE",
