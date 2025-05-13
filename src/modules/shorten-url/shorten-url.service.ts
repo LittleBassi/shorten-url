@@ -1,8 +1,9 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { ShortenUrlRepository } from "./shorten-url.repository";
 import { CreateShortenUrlDto } from "./dto/create-shorten-url.dto";
 import { generateCode } from "../../helpers/nanoid.helper";
 import { UsersService } from "../users/users.service";
+import { UpdateShortenUrlDto } from "./dto/update-shorten-url.dto";
 
 @Injectable()
 export class ShortenUrlService {
@@ -29,6 +30,35 @@ export class ShortenUrlService {
     return `${this.apiRoute}/${shortenedUrl.shortenedCode}`;
   }
 
+  async update(id: number, dto: UpdateShortenUrlDto, userId: number | null) {
+    if (!userId) {
+      throw new NotFoundException("User not found");
+    }
+    const shortenedUrl = await this.shortenedUrlRepository.findOne(id);
+    if (!id || !shortenedUrl || shortenedUrl?.user?.id !== userId) {
+      throw new NotFoundException("URL not found");
+    }
+    const existingUrl = await this.shortenedUrlRepository.findByUrl(dto.url);
+    if (existingUrl && existingUrl.id !== shortenedUrl.id) {
+      throw new BadRequestException("URL already exists");
+    }
+    shortenedUrl.url = dto.url;
+    await this.shortenedUrlRepository.update(shortenedUrl);
+    return shortenedUrl;
+  }
+
+  async remove(id: number, userId: number | null) {
+    if (!userId) {
+      throw new NotFoundException("User not found");
+    }
+    const shortenedUrl = await this.shortenedUrlRepository.findOne(id);
+    if (!id || !shortenedUrl || shortenedUrl?.user?.id !== userId) {
+      throw new NotFoundException("URL not found");
+    }
+    return await this.shortenedUrlRepository.delete(shortenedUrl);
+  }
+
+
   async findByCode(code: string) {
     const shortenedUrl = await this.shortenedUrlRepository.findByCode(code);
     if (!shortenedUrl) {
@@ -39,5 +69,12 @@ export class ShortenUrlService {
 
   async findByUrl(url: string) {
     return this.shortenedUrlRepository.findByUrl(url);
+  }
+
+  async findByUserId(userId: number | null) {
+    if (!userId) {
+      throw new NotFoundException("User not found");
+    }
+    return this.shortenedUrlRepository.findByUserId(userId);
   }
 }

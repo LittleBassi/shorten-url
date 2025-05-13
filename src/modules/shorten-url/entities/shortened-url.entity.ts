@@ -13,8 +13,8 @@ import {
 } from "typeorm";
 
 @Entity("shortened_url")
-@Unique(["shortenedCode"])
-@Unique(["url"])
+@Unique(["shortenedCode", "deletedAt"])
+@Unique(["url", "deletedAt"])
 export class ShortenedUrl extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

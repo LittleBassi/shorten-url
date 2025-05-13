@@ -10,6 +10,13 @@ export class ShortenUrlRepository {
     protected readonly shortenedUrlRepository: Repository<ShortenedUrl>,
   ) {}
 
+  async findOne(id: number) {
+    return this.shortenedUrlRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+  }
+
   async findByCode(code: string) {
     return this.shortenedUrlRepository.findOne({
       where: { shortenedCode: code },
@@ -18,6 +25,12 @@ export class ShortenUrlRepository {
 
   async findByUrl(url: string) {
     return this.shortenedUrlRepository.findOne({ where: { url } });
+  }
+
+  async findByUserId(userId: number) {
+    return this.shortenedUrlRepository.find({
+      where: { user: { id: userId } },
+    });
   }
 
   create(shortenedUrl: DeepPartial<ShortenedUrl>) {
